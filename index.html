@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SAVOR — Demo Hub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    * { font-family: 'Inter', sans-serif; }
+    .role-card { transition: all 0.25s cubic-bezier(0.4,0,0.2,1); }
+    .role-card:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(0,0,0,0.12); }
+    .role-card:hover .arrow { transform: translateX(4px); }
+    .arrow { transition: transform 0.2s; }
+    @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+    .float { animation: float 3s ease-in-out infinite; }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+    .fade-up { animation: fadeUp 0.5s ease-out forwards; opacity: 0; }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-orange-50 via-white to-amber-50 min-h-screen">
+
+  <!-- Header -->
+  <header class="px-8 pt-8 pb-4 flex items-center justify-between max-w-6xl mx-auto">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 bg-orange-500 rounded-2xl flex items-center justify-center shadow-lg">
+        <span class="text-white font-black text-base">S</span>
+      </div>
+      <div>
+        <span class="font-black text-2xl text-gray-900">SAVOR</span>
+        <span class="ml-2 text-xs font-semibold bg-orange-100 text-orange-600 px-2 py-0.5 rounded-full">DEMO</span>
+      </div>
+    </div>
+    <div class="text-sm text-gray-400 font-medium">Restaurant Management System</div>
+  </header>
+
+  <!-- Hero -->
+  <section class="max-w-6xl mx-auto px-8 pt-8 pb-6 text-center fade-up" style="animation-delay:0.1s">
+    <div class="float inline-block text-6xl mb-4">🍽️</div>
+    <h1 class="text-5xl font-black text-gray-900 mb-3 leading-tight">
+      Choose a <span class="text-orange-500">Role</span><br>to Explore
+    </h1>
+    <p class="text-gray-500 text-lg max-w-xl mx-auto">
+      An end-to-end QR-based dining experience — from ordering to kitchen to management.
+    </p>
+  </section>
+
+  <!-- Role Cards -->
+  <section class="max-w-6xl mx-auto px-8 pb-16">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mt-4">
+
+      <!-- Customer -->
+      <a href="menu.html" class="role-card bg-white rounded-3xl p-6 border border-gray-100 shadow-sm block fade-up" style="animation-delay:0.15s">
+        <div class="w-14 h-14 bg-orange-50 rounded-2xl flex items-center justify-center text-3xl mb-4">📱</div>
+        <div class="flex items-start justify-between mb-2">
+          <h2 class="text-xl font-bold text-gray-900">Customer</h2>
+          <span class="text-xs font-semibold bg-green-100 text-green-600 px-2 py-1 rounded-full">Public</span>
+        </div>
+        <p class="text-gray-500 text-sm mb-5">Scan QR code, browse the menu, add to cart, pay, and track your order live.</p>
+        <div class="space-y-1.5">
+          <div class="flex items-center gap-2 text-xs text-gray-400"><span class="w-1.5 h-1.5 bg-orange-400 rounded-full"></span>Menu with categories & dietary filters</div>
+          <div class="flex items-center gap-2 text-xs text-gray-400"><span class="w-1.5 h-1.5 bg-orange-400 rounded-full"></span>Cart drawer & checkout</div>
+          <div class="flex items-center gap-2 text-xs text-gray-400"><span class="w-1.5 h-1.5 bg-orange-400 rounded-full"></span>Live order tracking</div>
+        </div>
+        <div class="mt-5 flex items-center gap-2 text-orange-500 font-semibold text-sm">
+          <span>Start Customer Flow</span>
+          <svg class="arrow w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+        </div>
+      </a>
+
+      <!-- Kitchen -->
+      <a href="kitchen.html" class="role-card bg-white rounded-3xl p-6 border border-gray-100 shadow-sm block fade-up" style="animation-delay:0.2s">
+        <div class="w-14 h-14 bg-amber-50 rounded-2xl flex items-center justify-center text-3xl mb-4">👨‍🍳</div>
+        <div class="flex items-start justify-between mb-2">
+          <h2 class="text-xl font-bold text-gray-900">Kitchen Staff</h2>
+          <span class="text-xs font-semibold bg-amber-100 text-amber-600 px-2 py-1 rounded-full">Staff</span>
+        </div>
+        <p class="text-gray-500 text-sm mb-5">Real-time order queue, cooking management, and status updates for kitchen staff.</p>
+        <div class="space-y-1.5">
+          <div class="flex items-center gap-2 text-xs text-gray-400"><span class="w-1.5 h-1.5 bg-amber-400 rounded-full"></span>Live order queue by table</div>
+          <div class="flex items-center gap-2 text-xs text-gray-400"><span class="w-1.5 h-1.5 bg-amber-400 rounded-full"></span>Start cooking & mark ready</div>
+          <div class="flex items-center gap-2 text-xs text-gray-400"><span class="w-1.5 h-1.5 bg-amber-400 rounded-full"></span>Special instructions per item</div>
+        </div>
+        <div class="mt-5 flex items-center gap-2 text-amber-500 font-semibold text-sm">
+          <span>Open Kitchen Display</span>
+          <svg class="arrow w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+        </div>
+      </a>
+
+      <!-- Waiter -->
+      <a href="staff.html" class="role-card bg-white rounded-3xl p-6 border border-gray-100 shadow-sm block fade-up" style="animation-delay:0.25s">
+        <div class="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center text-3xl mb-4">🛎️</div>
+        <div class="flex items-start justify-between mb-2">
+          <h2 class="text-xl font-bold text-gray-900">Waiter</h2>
+          <span class="text-xs font-semibold bg-blue-100 text-blue-600 px-2 py-1 rounded-full">Staff</span>
+        </div>
+        <p class="text-gray-500 text-sm mb-5">See orders ready for service and mark them as served when delivered to tables.</p>
+        <div class="space-y-1.5">
+          <div class="flex items-center gap-2 text-xs text-gray-400"><span class="w-1.5 h-1.5 bg-blue-400 rounded-full"></span>Ready-to-serve order list</div>
+          <div class="flex items-center gap-2 text-xs text-gray-400"><span class="w-1.5 h-1.5 bg-blue-400 rounded-full"></span>Table & order details</div>
+          <div class="flex items-center gap-2 text-xs text-gray-400"><span class="w-1.5 h-1.5 bg-blue-400 rounded-full"></span>Mark as served</div>
+        </div>
+        <div class="mt-5 flex items-center gap-2 text-blue-500 font-semibold text-sm">
+          <span>Open Staff Board</span>
+          <svg class="arrow w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+        </div>
+      </a>
+
+      <!-- Admin -->
+      <a href="admin.html" class="role-card bg-white rounded-3xl p-6 border border-gray-100 shadow-sm block md:col-span-2 lg:col-span-1 fade-up" style="animation-delay:0.3s">
+        <div class="w-14 h-14 bg-purple-50 rounded-2xl flex items-center justify-center text-3xl mb-4">📊</div>
+        <div class="flex items-start justify-between mb-2">
+          <h2 class="text-xl font-bold text-gray-900">Admin</h2>
+          <span class="text-xs font-semibold bg-purple-100 text-purple-600 px-2 py-1 rounded-full">Admin</span>
+        </div>
+        <p class="text-gray-500 text-sm mb-5">Full dashboard with analytics, order management, menu editing, and staff control.</p>
+        <div class="space-y-1.5">
+          <div class="flex items-center gap-2 text-xs text-gray-400"><span class="w-1.5 h-1.5 bg-purple-400 rounded-full"></span>Revenue & order analytics</div>
+          <div class="flex items-center gap-2 text-xs text-gray-400"><span class="w-1.5 h-1.5 bg-purple-400 rounded-full"></span>Menu & staff management</div>
+          <div class="flex items-center gap-2 text-xs text-gray-400"><span class="w-1.5 h-1.5 bg-purple-400 rounded-full"></span>Charts & reports</div>
+        </div>
+        <div class="mt-5 flex items-center gap-2 text-purple-500 font-semibold text-sm">
+          <span>Open Admin Dashboard</span>
+          <svg class="arrow w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+        </div>
+      </a>
+
+      <!-- Full Flow Card -->
+      <a href="menu.html" class="role-card bg-gradient-to-br from-orange-500 to-amber-400 rounded-3xl p-6 shadow-lg block md:col-span-2 fade-up" style="animation-delay:0.35s">
+        <div class="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center text-3xl mb-4">🎯</div>
+        <h2 class="text-xl font-bold text-white mb-2">Full Demo Flow</h2>
+        <p class="text-orange-100 text-sm mb-5">Experience the complete customer journey — from scanning QR to food being served.</p>
+        <div class="flex items-center gap-3 flex-wrap">
+          <span class="text-xs bg-white/20 text-white px-3 py-1.5 rounded-full font-medium">Menu</span>
+          <span class="text-orange-200 text-xs">→</span>
+          <span class="text-xs bg-white/20 text-white px-3 py-1.5 rounded-full font-medium">Cart</span>
+          <span class="text-orange-200 text-xs">→</span>
+          <span class="text-xs bg-white/20 text-white px-3 py-1.5 rounded-full font-medium">Checkout</span>
+          <span class="text-orange-200 text-xs">→</span>
+          <span class="text-xs bg-white/20 text-white px-3 py-1.5 rounded-full font-medium">Track Order</span>
+        </div>
+        <div class="mt-5 flex items-center gap-2 text-white font-semibold text-sm">
+          <span>Start Full Flow</span>
+          <svg class="arrow w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+        </div>
+      </a>
+
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="text-center pb-8 text-xs text-gray-400">
+    SAVOR Restaurant Management System &nbsp;·&nbsp; Presentation Demo
+  </footer>
+
+</body>
+</html>

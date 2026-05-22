@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SAVOR — Admin Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    * { font-family: 'Inter', sans-serif; }
+    .tab-active { background: white; color: #111827; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-radius: 8px; }
+    .tab-inactive { color: #6b7280; }
+    .page { display: none; }
+    .page.active { display: block; }
+    @keyframes countUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+    .count-up { animation: countUp 0.5s ease-out; }
+    .sidebar-link { transition: all 0.15s; }
+    .sidebar-link.active { background: #fff7ed; color: #f97316; }
+    .sidebar-link:not(.active):hover { background: #f9fafb; }
+    .status-badge { display: inline-flex; align-items: center; padding: 2px 10px; border-radius: 99px; font-size: 11px; font-weight: 700; }
+    tr { transition: background 0.15s; }
+    tbody tr:hover { background: #fafafa; }
+    .toggle-on { background: #22c55e; }
+    .toggle-off { background: #d1d5db; }
+    .toggle-knob { transform: translateX(0); transition: transform 0.2s; }
+    .toggle-on .toggle-knob { transform: translateX(20px); }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex">
+
+  <!-- ===== SIDEBAR ===== -->
+  <aside class="hidden md:flex flex-col w-64 bg-white border-r border-gray-100 shadow-sm fixed h-full z-30">
+    <div class="p-5 border-b border-gray-100">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-orange-500 rounded-xl flex items-center justify-center shadow">
+          <span class="text-white font-black text-sm">S</span>
+        </div>
+        <div>
+          <p class="font-black text-gray-900">SAVOR</p>
+          <p class="text-xs text-gray-400">Admin Panel</p>
+        </div>
+      </div>
+    </div>
+    <nav class="p-3 flex-1 space-y-1">
+      <button onclick="showPage('dashboard')" id="nav-dashboard" class="sidebar-link active w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-left">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+        Dashboard
+      </button>
+      <button onclick="showPage('orders')" id="nav-orders" class="sidebar-link tab-inactive w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-left">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+        Orders
+        <span class="ml-auto bg-orange-100 text-orange-600 text-xs font-bold px-2 py-0.5 rounded-full">12</span>
+      </button>
+      <button onclick="showPage('menu')" id="nav-menu" class="sidebar-link tab-inactive w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-left">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+        Menu Items
+      </button>
+      <button onclick="showPage('staff')" id="nav-staff" class="sidebar-link tab-inactive w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-left">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+        Staff
+      </button>
+    </nav>
+    <div class="p-4 border-t border-gray-100">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 font-bold text-sm">A</div>
+        <div>
+          <p class="text-xs font-bold text-gray-900">Admin User</p>
+          <p class="text-xs text-gray-400">admin@savor.com</p>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ===== MAIN CONTENT ===== -->
+  <main class="flex-1 md:ml-64 min-h-screen">
+
+    <!-- Top Bar -->
+    <div class="bg-white border-b border-gray-100 shadow-sm sticky top-0 z-20 px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3 md:hidden">
+        <div class="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center"><span class="text-white font-black text-xs">S</span></div>
+        <span class="font-black text-gray-900">SAVOR Admin</span>
+      </div>
+      <div class="hidden md:block">
+        <h1 class="font-bold text-gray-900 text-lg" id="pageTitle">Dashboard</h1>
+        <p class="text-xs text-gray-400" id="pageSubtitle">Overview of today's performance</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <div class="flex items-center gap-1.5 text-xs text-gray-500 bg-gray-50 border border-gray-200 px-3 py-1.5 rounded-full">
+          <span class="w-2 h-2 bg-green-400 rounded-full"></span>
+          May 23, 2026
+        </div>
+        <a href="index.html" class="text-sm font-semibold text-gray-500 hover:text-gray-700 hidden md:block">← Hub</a>
+      </div>
+    </div>
+
+    <!-- Mobile Nav Tabs -->
+    <div class="md:hidden bg-gray-100 mx-4 mt-4 p-1 rounded-xl flex gap-1">
+      <button onclick="showPage('dashboard')" id="mob-dashboard" class="flex-1 tab-active py-2 text-xs font-semibold">Dashboard</button>
+      <button onclick="showPage('orders')" id="mob-orders" class="flex-1 tab-inactive py-2 text-xs font-semibold">Orders</button>
+      <button onclick="showPage('menu')" id="mob-menu" class="flex-1 tab-inactive py-2 text-xs font-semibold">Menu</button>
+      <button onclick="showPage('staff')" id="mob-staff" class="flex-1 tab-inactive py-2 text-xs font-semibold">Staff</button>
+    </div>
+
+    <!-- ======= DASHBOARD PAGE ======= -->
+    <div id="page-dashboard" class="page active p-6 space-y-6">
+
+      <!-- KPI Cards -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 count-up">
+          <div class="flex items-center justify-between mb-3">
+            <div class="w-10 h-10 bg-orange-50 rounded-xl flex items-center justify-center">
+              <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+            <span class="text-xs font-semibold text-green-500 bg-green-50 px-2 py-0.5 rounded-full">+18%</span>
+          </div>
+          <p class="text-2xl font-black text-gray-900">$1,890</p>
+          <p class="text-xs text-gray-400 mt-1 font-medium">Today's Revenue</p>
+        </div>
+        <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 count-up" style="animation-delay:0.1s">
+          <div class="flex items-center justify-between mb-3">
+            <div class="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center">
+              <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+            </div>
+            <span class="text-xs font-semibold text-green-500 bg-green-50 px-2 py-0.5 rounded-full">+5</span>
+          </div>
+          <p class="text-2xl font-black text-gray-900">234</p>
+          <p class="text-xs text-gray-400 mt-1 font-medium">Total Orders</p>
+        </div>
+        <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 count-up" style="animation-delay:0.2s">
+          <div class="flex items-center justify-between mb-3">
+            <div class="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center">
+              <svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            </div>
+            <span class="text-xs font-semibold text-amber-500 bg-amber-50 px-2 py-0.5 rounded-full">Live</span>
+          </div>
+          <p class="text-2xl font-black text-gray-900">12</p>
+          <p class="text-xs text-gray-400 mt-1 font-medium">Active Orders</p>
+        </div>
+        <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 count-up" style="animation-delay:0.3s">
+          <div class="flex items-center justify-between mb-3">
+            <div class="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center">
+              <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+            <span class="text-xs font-semibold text-green-500 bg-green-50 px-2 py-0.5 rounded-full">+22%</span>
+          </div>
+          <p class="text-2xl font-black text-gray-900">$36.20</p>
+          <p class="text-xs text-gray-400 mt-1 font-medium">Avg. Order Value</p>
+        </div>
+      </div>
+
+      <!-- Charts Row -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+        <!-- Revenue Chart -->
+        <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h3 class="font-bold text-gray-900">Revenue</h3>
+              <p class="text-xs text-gray-400">Last 7 days</p>
+            </div>
+            <div class="flex items-center gap-2 text-xs">
+              <span class="font-bold text-gray-900">$12,600</span>
+              <span class="text-green-500 bg-green-50 px-2 py-0.5 rounded-full font-semibold">↑ 14%</span>
+            </div>
+          </div>
+          <div class="h-48"><canvas id="revenueChart"></canvas></div>
+        </div>
+
+        <!-- Orders by Status (Donut) -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+          <h3 class="font-bold text-gray-900 mb-1">Orders by Status</h3>
+          <p class="text-xs text-gray-400 mb-4">Today's breakdown</p>
+          <div class="h-36 flex items-center justify-center"><canvas id="statusChart"></canvas></div>
+          <div class="mt-4 space-y-2">
+            <div class="flex items-center justify-between text-xs"><div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-green-500"></span>Served</div><span class="font-bold text-gray-900">187</span></div>
+            <div class="flex items-center justify-between text-xs"><div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>Active</div><span class="font-bold text-gray-900">34</span></div>
+            <div class="flex items-center justify-between text-xs"><div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-red-400"></span>Cancelled</div><span class="font-bold text-gray-900">13</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Top Items + Recent Orders -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+        <!-- Top Items -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+          <h3 class="font-bold text-gray-900 mb-4">🏆 Top Items</h3>
+          <div class="space-y-3">
+            <div><div class="flex justify-between text-sm mb-1"><span class="font-medium text-gray-700">Grilled Chicken Burger</span><span class="font-bold text-gray-900">47</span></div><div class="bg-gray-100 rounded-full h-1.5"><div class="bg-orange-500 h-full rounded-full" style="width:100%"></div></div></div>
+            <div><div class="flex justify-between text-sm mb-1"><span class="font-medium text-gray-700">Margherita Pizza</span><span class="font-bold text-gray-900">38</span></div><div class="bg-gray-100 rounded-full h-1.5"><div class="bg-orange-400 h-full rounded-full" style="width:81%"></div></div></div>
+            <div><div class="flex justify-between text-sm mb-1"><span class="font-medium text-gray-700">Spaghetti Carbonara</span><span class="font-bold text-gray-900">32</span></div><div class="bg-gray-100 rounded-full h-1.5"><div class="bg-amber-400 h-full rounded-full" style="width:68%"></div></div></div>
+            <div><div class="flex justify-between text-sm mb-1"><span class="font-medium text-gray-700">Chocolate Lava Cake</span><span class="font-bold text-gray-900">28</span></div><div class="bg-gray-100 rounded-full h-1.5"><div class="bg-amber-300 h-full rounded-full" style="width:60%"></div></div></div>
+            <div><div class="flex justify-between text-sm mb-1"><span class="font-medium text-gray-700">Mango Lassi</span><span class="font-bold text-gray-900">24</span></div><div class="bg-gray-100 rounded-full h-1.5"><div class="bg-yellow-300 h-full rounded-full" style="width:51%"></div></div></div>
+          </div>
+        </div>
+
+        <!-- Recent Orders -->
+        <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          <div class="px-5 py-4 border-b border-gray-50 flex items-center justify-between">
+            <h3 class="font-bold text-gray-900">Recent Orders</h3>
+            <button onclick="showPage('orders')" class="text-orange-500 text-xs font-semibold hover:underline">View all →</button>
+          </div>
+          <table class="w-full">
+            <thead class="bg-gray-50"><tr>
+              <th class="px-4 py-2.5 text-left text-xs font-semibold text-gray-500">Order</th>
+              <th class="px-4 py-2.5 text-left text-xs font-semibold text-gray-500">Table</th>
+              <th class="px-4 py-2.5 text-left text-xs font-semibold text-gray-500">Total</th>
+              <th class="px-4 py-2.5 text-left text-xs font-semibold text-gray-500">Status</th>
+            </tr></thead>
+            <tbody class="divide-y divide-gray-50 text-sm">
+              <tr><td class="px-4 py-3 font-mono font-semibold text-gray-700">ORD-1045</td><td class="px-4 py-3 text-gray-600">D2</td><td class="px-4 py-3 font-bold">$25.47</td><td class="px-4 py-3"><span class="status-badge bg-blue-100 text-blue-700">Received</span></td></tr>
+              <tr><td class="px-4 py-3 font-mono font-semibold text-gray-700">ORD-1044</td><td class="px-4 py-3 text-gray-600">A12</td><td class="px-4 py-3 font-bold">$29.98</td><td class="px-4 py-3"><span class="status-badge bg-amber-100 text-amber-700">In Kitchen</span></td></tr>
+              <tr><td class="px-4 py-3 font-mono font-semibold text-gray-700">ORD-1043</td><td class="px-4 py-3 text-gray-600">B3</td><td class="px-4 py-3 font-bold">$36.97</td><td class="px-4 py-3"><span class="status-badge bg-amber-100 text-amber-700">In Kitchen</span></td></tr>
+              <tr><td class="px-4 py-3 font-mono font-semibold text-gray-700">ORD-1041</td><td class="px-4 py-3 text-gray-600">C7</td><td class="px-4 py-3 font-bold">$41.47</td><td class="px-4 py-3"><span class="status-badge bg-orange-100 text-orange-600">Ready</span></td></tr>
+              <tr><td class="px-4 py-3 font-mono font-semibold text-gray-700">ORD-1038</td><td class="px-4 py-3 text-gray-600">E5</td><td class="px-4 py-3 font-bold">$22.97</td><td class="px-4 py-3"><span class="status-badge bg-green-100 text-green-700">Served</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======= ORDERS PAGE ======= -->
+    <div id="page-orders" class="page p-6 space-y-4">
+      <div class="flex flex-wrap gap-3 items-center justify-between">
+        <div class="flex gap-2">
+          <div class="relative"><input type="text" placeholder="Search orders..." class="pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-400">
+            <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          </div>
+          <select class="px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-400">
+            <option>All Status</option><option>Received</option><option>In Kitchen</option><option>Ready</option><option>Served</option><option>Cancelled</option>
+          </select>
+        </div>
+        <button class="bg-orange-500 text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-orange-600 transition-colors flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+          Export
+        </button>
+      </div>
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <table class="w-full">
+          <thead class="bg-gray-50 border-b border-gray-100"><tr>
+            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Order ID</th>
+            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Table</th>
+            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Items</th>
+            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Total</th>
+            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Payment</th>
+            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Status</th>
+            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Time</th>
+          </tr></thead>
+          <tbody class="divide-y divide-gray-50 text-sm">
+            <tr><td class="px-5 py-3.5 font-mono font-bold text-gray-800">ORD-1045</td><td class="px-5 py-3.5 font-semibold text-gray-700">D2</td><td class="px-5 py-3.5 text-gray-500">2 items</td><td class="px-5 py-3.5 font-bold">$25.47</td><td class="px-5 py-3.5"><span class="status-badge bg-gray-100 text-gray-600">Cash</span></td><td class="px-5 py-3.5"><span class="status-badge bg-blue-100 text-blue-700">Received</span></td><td class="px-5 py-3.5 text-gray-400 text-xs">2 min ago</td></tr>
+            <tr><td class="px-5 py-3.5 font-mono font-bold text-gray-800">ORD-1044</td><td class="px-5 py-3.5 font-semibold text-gray-700">A12</td><td class="px-5 py-3.5 text-gray-500">2 items</td><td class="px-5 py-3.5 font-bold">$29.98</td><td class="px-5 py-3.5"><span class="status-badge bg-gray-100 text-gray-600">Card</span></td><td class="px-5 py-3.5"><span class="status-badge bg-amber-100 text-amber-700">In Kitchen</span></td><td class="px-5 py-3.5 text-gray-400 text-xs">5 min ago</td></tr>
+            <tr><td class="px-5 py-3.5 font-mono font-bold text-gray-800">ORD-1043</td><td class="px-5 py-3.5 font-semibold text-gray-700">B3</td><td class="px-5 py-3.5 text-gray-500">3 items</td><td class="px-5 py-3.5 font-bold">$36.97</td><td class="px-5 py-3.5"><span class="status-badge bg-pink-100 text-pink-700">bKash</span></td><td class="px-5 py-3.5"><span class="status-badge bg-amber-100 text-amber-700">In Kitchen</span></td><td class="px-5 py-3.5 text-gray-400 text-xs">8 min ago</td></tr>
+            <tr><td class="px-5 py-3.5 font-mono font-bold text-gray-800">ORD-1041</td><td class="px-5 py-3.5 font-semibold text-gray-700">C7</td><td class="px-5 py-3.5 text-gray-500">3 items</td><td class="px-5 py-3.5 font-bold">$41.47</td><td class="px-5 py-3.5"><span class="status-badge bg-gray-100 text-gray-600">Cash</span></td><td class="px-5 py-3.5"><span class="status-badge bg-orange-100 text-orange-600">Ready</span></td><td class="px-5 py-3.5 text-gray-400 text-xs">14 min ago</td></tr>
+            <tr><td class="px-5 py-3.5 font-mono font-bold text-gray-800">ORD-1039</td><td class="px-5 py-3.5 font-semibold text-gray-700">F4</td><td class="px-5 py-3.5 text-gray-500">2 items</td><td class="px-5 py-3.5 font-bold">$42.96</td><td class="px-5 py-3.5"><span class="status-badge bg-gray-100 text-gray-600">Card</span></td><td class="px-5 py-3.5"><span class="status-badge bg-orange-100 text-orange-600">Ready</span></td><td class="px-5 py-3.5 text-gray-400 text-xs">18 min ago</td></tr>
+            <tr><td class="px-5 py-3.5 font-mono font-bold text-gray-800">ORD-1038</td><td class="px-5 py-3.5 font-semibold text-gray-700">E5</td><td class="px-5 py-3.5 text-gray-500">3 items</td><td class="px-5 py-3.5 font-bold">$22.97</td><td class="px-5 py-3.5"><span class="status-badge bg-orange-100 text-orange-700">Nagad</span></td><td class="px-5 py-3.5"><span class="status-badge bg-green-100 text-green-700">Served</span></td><td class="px-5 py-3.5 text-gray-400 text-xs">22 min ago</td></tr>
+            <tr><td class="px-5 py-3.5 font-mono font-bold text-gray-800">ORD-1035</td><td class="px-5 py-3.5 font-semibold text-gray-700">F1</td><td class="px-5 py-3.5 text-gray-500">4 items</td><td class="px-5 py-3.5 font-bold">$60.43</td><td class="px-5 py-3.5"><span class="status-badge bg-gray-100 text-gray-600">Card</span></td><td class="px-5 py-3.5"><span class="status-badge bg-green-100 text-green-700">Served</span></td><td class="px-5 py-3.5 text-gray-400 text-xs">35 min ago</td></tr>
+            <tr><td class="px-5 py-3.5 font-mono font-bold text-gray-800">ORD-1033</td><td class="px-5 py-3.5 font-semibold text-gray-700">G3</td><td class="px-5 py-3.5 text-gray-500">4 items</td><td class="px-5 py-3.5 font-bold">$35.95</td><td class="px-5 py-3.5"><span class="status-badge bg-gray-100 text-gray-600">Cash</span></td><td class="px-5 py-3.5"><span class="status-badge bg-red-100 text-red-600">Cancelled</span></td><td class="px-5 py-3.5 text-gray-400 text-xs">41 min ago</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ======= MENU PAGE ======= -->
+    <div id="page-menu" class="page p-6 space-y-4">
+      <div class="flex items-center justify-between">
+        <p class="text-sm text-gray-500">17 items across 4 categories</p>
+        <button onclick="showAddItem()" class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-colors flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+          Add Item
+        </button>
+      </div>
+
+      <!-- Add Item Modal -->
+      <div id="addModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="font-bold text-gray-900 text-lg">Add Menu Item</h3>
+            <button onclick="hideAddItem()" class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors">×</button>
+          </div>
+          <div class="space-y-3">
+            <input type="text" placeholder="Item name" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-400">
+            <select class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-400">
+              <option>Starters</option><option>Mains</option><option>Desserts</option><option>Drinks</option>
+            </select>
+            <div class="flex gap-3">
+              <input type="text" placeholder="Price ($)" class="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-400">
+              <input type="text" placeholder="Calories" class="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-400">
+            </div>
+            <textarea placeholder="Description..." class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm h-20 resize-none focus:outline-none focus:ring-2 focus:ring-orange-400"></textarea>
+          </div>
+          <div class="flex gap-3 mt-4">
+            <button onclick="hideAddItem()" class="flex-1 py-2.5 border border-gray-200 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors">Cancel</button>
+            <button onclick="hideAddItem()" class="flex-1 py-2.5 bg-orange-500 text-white rounded-xl text-sm font-bold hover:bg-orange-600 transition-colors">Add Item</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <table class="w-full">
+          <thead class="bg-gray-50 border-b border-gray-100"><tr>
+            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase">Item</th>
+            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase">Category</th>
+            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase">Price</th>
+            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase">Available</th>
+            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase">Actions</th>
+          </tr></thead>
+          <tbody id="menuTable" class="divide-y divide-gray-50 text-sm"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ======= STAFF PAGE ======= -->
+    <div id="page-staff" class="page p-6 space-y-4">
+      <div class="flex items-center justify-between">
+        <p class="text-sm text-gray-500">4 staff members</p>
+        <button class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-colors flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+          Invite Staff
+        </button>
+      </div>
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <table class="w-full">
+          <thead class="bg-gray-50 border-b border-gray-100"><tr>
+            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase">Name</th>
+            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase">Role</th>
+            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase">Email</th>
+            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase">Status</th>
+            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase">Last Login</th>
+            <th class="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase">Actions</th>
+          </tr></thead>
+          <tbody class="divide-y divide-gray-50 text-sm">
+            <tr>
+              <td class="px-5 py-4"><div class="flex items-center gap-3"><div class="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center font-bold text-orange-600 text-sm">A</div><span class="font-semibold text-gray-900">Alex Rahman</span></div></td>
+              <td class="px-5 py-4"><span class="status-badge bg-purple-100 text-purple-700">Admin</span></td>
+              <td class="px-5 py-4 text-gray-500">alex@savor.com</td>
+              <td class="px-5 py-4"><span class="status-badge bg-green-100 text-green-700">● Active</span></td>
+              <td class="px-5 py-4 text-gray-400 text-xs">Just now</td>
+              <td class="px-5 py-4"><button class="text-xs text-gray-500 hover:text-orange-500 font-semibold">Edit</button></td>
+            </tr>
+            <tr>
+              <td class="px-5 py-4"><div class="flex items-center gap-3"><div class="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center font-bold text-amber-600 text-sm">M</div><span class="font-semibold text-gray-900">Marcus T.</span></div></td>
+              <td class="px-5 py-4"><span class="status-badge bg-amber-100 text-amber-700">Kitchen</span></td>
+              <td class="px-5 py-4 text-gray-500">marcus@savor.com</td>
+              <td class="px-5 py-4"><span class="status-badge bg-green-100 text-green-700">● Active</span></td>
+              <td class="px-5 py-4 text-gray-400 text-xs">5 min ago</td>
+              <td class="px-5 py-4"><button class="text-xs text-gray-500 hover:text-orange-500 font-semibold">Edit</button></td>
+            </tr>
+            <tr>
+              <td class="px-5 py-4"><div class="flex items-center gap-3"><div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center font-bold text-blue-600 text-sm">S</div><span class="font-semibold text-gray-900">Sarah K.</span></div></td>
+              <td class="px-5 py-4"><span class="status-badge bg-blue-100 text-blue-700">Waiter</span></td>
+              <td class="px-5 py-4 text-gray-500">sarah@savor.com</td>
+              <td class="px-5 py-4"><span class="status-badge bg-green-100 text-green-700">● Active</span></td>
+              <td class="px-5 py-4 text-gray-400 text-xs">2 min ago</td>
+              <td class="px-5 py-4"><button class="text-xs text-gray-500 hover:text-orange-500 font-semibold">Edit</button></td>
+            </tr>
+            <tr>
+              <td class="px-5 py-4"><div class="flex items-center gap-3"><div class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center font-bold text-gray-500 text-sm">J</div><span class="font-semibold text-gray-900">James O.</span></div></td>
+              <td class="px-5 py-4"><span class="status-badge bg-blue-100 text-blue-700">Waiter</span></td>
+              <td class="px-5 py-4 text-gray-500">james@savor.com</td>
+              <td class="px-5 py-4"><span class="status-badge bg-gray-100 text-gray-500">Offline</span></td>
+              <td class="px-5 py-4 text-gray-400 text-xs">2 hrs ago</td>
+              <td class="px-5 py-4"><button class="text-xs text-gray-500 hover:text-orange-500 font-semibold">Edit</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+  // Menu table data
+  const menuItems = [
+    { name:'Crispy Calamari', cat:'Starters', price:8.99, avail:true },
+    { name:'Garden Spring Rolls', cat:'Starters', price:7.49, avail:true },
+    { name:'Buffalo Chicken Wings', cat:'Starters', price:10.99, avail:true },
+    { name:'Classic Caesar Salad', cat:'Starters', price:9.49, avail:false },
+    { name:'Grilled Chicken Burger', cat:'Mains', price:14.99, avail:true },
+    { name:'Margherita Pizza', cat:'Mains', price:13.49, avail:true },
+    { name:'Spaghetti Carbonara', cat:'Mains', price:15.99, avail:true },
+    { name:'Grilled Atlantic Salmon', cat:'Mains', price:18.99, avail:true },
+    { name:'Lamb Kofta Platter', cat:'Mains', price:16.99, avail:true },
+    { name:'Wild Mushroom Risotto', cat:'Mains', price:14.49, avail:false },
+    { name:'Chocolate Lava Cake', cat:'Desserts', price:7.99, avail:true },
+    { name:'Mango Sorbet', cat:'Desserts', price:5.99, avail:true },
+    { name:'New York Cheesecake', cat:'Desserts', price:6.99, avail:true },
+    { name:'Fresh Lemonade', cat:'Drinks', price:3.99, avail:true },
+    { name:'Mango Lassi', cat:'Drinks', price:4.49, avail:true },
+    { name:'Iced Coffee', cat:'Drinks', price:4.99, avail:true },
+    { name:'Sparkling Water', cat:'Drinks', price:2.49, avail:true },
+  ];
+
+  function renderMenuTable() {
+    const catColors = { Starters:'bg-green-100 text-green-700', Mains:'bg-orange-100 text-orange-700', Desserts:'bg-pink-100 text-pink-700', Drinks:'bg-blue-100 text-blue-700' };
+    document.getElementById('menuTable').innerHTML = menuItems.map((item, i) => `
+      <tr>
+        <td class="px-5 py-3.5 font-semibold text-gray-900">${item.name}</td>
+        <td class="px-5 py-3.5"><span class="status-badge ${catColors[item.cat]||'bg-gray-100 text-gray-600'}">${item.cat}</span></td>
+        <td class="px-5 py-3.5 font-bold text-gray-900">$${item.price.toFixed(2)}</td>
+        <td class="px-5 py-3.5">
+          <button onclick="toggleItem(${i})" class="w-10 h-5 rounded-full flex items-center px-0.5 transition-colors ${item.avail ? 'bg-green-500' : 'bg-gray-200'}">
+            <span class="w-4 h-4 bg-white rounded-full shadow transition-transform ${item.avail ? 'translate-x-5' : 'translate-x-0'}"></span>
+          </button>
+        </td>
+        <td class="px-5 py-3.5">
+          <div class="flex items-center gap-2">
+            <button class="text-xs text-gray-400 hover:text-orange-500 font-semibold transition-colors px-2 py-1 rounded-lg hover:bg-orange-50">Edit</button>
+            <button class="text-xs text-gray-400 hover:text-red-500 font-semibold transition-colors px-2 py-1 rounded-lg hover:bg-red-50">Delete</button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  function toggleItem(i) {
+    menuItems[i].avail = !menuItems[i].avail;
+    renderMenuTable();
+  }
+
+  function showPage(id) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('page-'+id).classList.add('active');
+
+    // Sidebar active state
+    document.querySelectorAll('.sidebar-link').forEach(l => { l.classList.remove('active'); l.classList.add('tab-inactive'); });
+    const nav = document.getElementById('nav-'+id);
+    if (nav) { nav.classList.add('active'); nav.classList.remove('tab-inactive'); }
+
+    // Mobile nav
+    document.querySelectorAll('[id^="mob-"]').forEach(b => { b.className = 'flex-1 tab-inactive py-2 text-xs font-semibold'; });
+    const mob = document.getElementById('mob-'+id);
+    if (mob) mob.className = 'flex-1 tab-active py-2 text-xs font-semibold';
+
+    const titles = { dashboard:['Dashboard','Overview of today\'s performance'], orders:['Orders','Manage and track all orders'], menu:['Menu Items','Edit your restaurant\'s menu'], staff:['Staff','Manage your team'] };
+    if (titles[id]) {
+      document.getElementById('pageTitle').textContent = titles[id][0];
+      document.getElementById('pageSubtitle').textContent = titles[id][1];
+    }
+  }
+
+  function showAddItem() { document.getElementById('addModal').classList.remove('hidden'); }
+  function hideAddItem() { document.getElementById('addModal').classList.add('hidden'); }
+
+  // Charts
+  window.addEventListener('load', () => {
+    // Revenue Line Chart
+    const rCtx = document.getElementById('revenueChart').getContext('2d');
+    new Chart(rCtx, {
+      type: 'line',
+      data: {
+        labels: ['May 17','May 18','May 19','May 20','May 21','May 22','May 23'],
+        datasets: [{
+          label: 'Revenue',
+          data: [1240, 1850, 1420, 2100, 1760, 2340, 1890],
+          borderColor: '#f97316',
+          backgroundColor: 'rgba(249,115,22,0.08)',
+          fill: true,
+          tension: 0.4,
+          pointBackgroundColor: '#f97316',
+          pointRadius: 4,
+          pointHoverRadius: 6,
+          borderWidth: 2.5,
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { display: false }, ticks: { font: { size: 10, family:'Inter' }, color:'#9ca3af' } },
+          y: { grid: { color: '#f3f4f6', lineWidth: 1 }, ticks: { font: { size: 10, family:'Inter' }, color:'#9ca3af', callback: v => '$'+v } }
+        }
+      }
+    });
+
+    // Status Donut Chart
+    const sCtx = document.getElementById('statusChart').getContext('2d');
+    new Chart(sCtx, {
+      type: 'doughnut',
+      data: {
+        labels: ['Served','Active','Cancelled'],
+        datasets: [{ data: [187,34,13], backgroundColor: ['#22c55e','#fbbf24','#f87171'], borderWidth: 0, hoverOffset: 4 }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false, cutout: '72%',
+        plugins: { legend: { display: false } }
+      }
+    });
+
+    renderMenuTable();
+  });
+  </script>
+</body>
+</html>

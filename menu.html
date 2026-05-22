@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SAVOR — Menu</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    * { font-family: 'Inter', sans-serif; }
+    .cart-drawer { transform: translateX(100%); transition: transform 0.35s cubic-bezier(0.4,0,0.2,1); }
+    .cart-drawer.open { transform: translateX(0); }
+    .overlay { opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+    .overlay.visible { opacity: 1; pointer-events: auto; }
+    .tag { display: inline-flex; align-items: center; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 99px; }
+    .tag-vegan { background:#dcfce7; color:#166534; }
+    .tag-vegetarian { background:#d1fae5; color:#065f46; }
+    .tag-halal { background:#dbeafe; color:#1e40af; }
+    .tag-gluten { background:#ede9fe; color:#5b21b6; }
+    .tag-spicy { background:#fee2e2; color:#991b1b; }
+    .card { transition: transform 0.2s, box-shadow 0.2s; }
+    .card:hover { transform: translateY(-3px); box-shadow: 0 12px 28px rgba(0,0,0,0.1); }
+    .tab-active { color: #f97316; border-bottom: 2.5px solid #f97316; font-weight: 700; }
+    .tab-inactive { color: #9ca3af; border-bottom: 2.5px solid transparent; }
+    .filter-pill { transition: all 0.15s; }
+    .filter-on { background: #f97316; color: #fff; border-color: #f97316; }
+    ::-webkit-scrollbar { width: 0; height: 0; }
+    @keyframes addBounce { 0%,100%{transform:scale(1)} 50%{transform:scale(1.3)} }
+    .bounce { animation: addBounce 0.3s ease; }
+    .line-clamp-2 { overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
+    @keyframes slideUp { from{transform:translateY(60px);opacity:0} to{transform:translateY(0);opacity:1} }
+    .slide-up { animation: slideUp 0.3s ease-out; }
+  </style>
+</head>
+<body class="bg-gray-50">
+
+  <!-- Overlay -->
+  <div id="overlay" class="overlay fixed inset-0 bg-black/60 z-40" onclick="closeCart()"></div>
+
+  <!-- ===== CART DRAWER ===== -->
+  <div id="cartDrawer" class="cart-drawer fixed right-0 top-0 h-full w-full sm:w-96 bg-white z-50 shadow-2xl flex flex-col">
+    <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+      <div>
+        <h2 class="text-lg font-bold text-gray-900">Your Order</h2>
+        <p class="text-xs text-gray-400">Table A12 · SAVOR</p>
+      </div>
+      <button onclick="closeCart()" class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors">
+        <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <div id="cartItems" class="flex-1 overflow-y-auto p-4 space-y-3"></div>
+
+    <div id="emptyState" class="flex-1 flex flex-col items-center justify-center text-center p-8">
+      <div class="text-6xl mb-3">🛒</div>
+      <p class="font-bold text-gray-700 text-lg">Your cart is empty</p>
+      <p class="text-sm text-gray-400 mt-1">Add items from the menu to get started</p>
+    </div>
+
+    <div id="cartFooter" class="hidden p-5 border-t border-gray-100 bg-gray-50/50">
+      <div class="space-y-1.5 mb-4">
+        <div class="flex justify-between text-sm text-gray-500"><span>Subtotal</span><span id="subtotal">$0.00</span></div>
+        <div class="flex justify-between text-sm text-gray-500"><span>Service charge (5%)</span><span id="serviceCharge">$0.00</span></div>
+        <div class="flex justify-between font-bold text-gray-900 text-base pt-2 border-t border-gray-200 mt-2">
+          <span>Total</span><span id="cartTotal" class="text-orange-500">$0.00</span>
+        </div>
+      </div>
+      <a href="checkout.html" class="block w-full bg-orange-500 hover:bg-orange-600 active:scale-95 text-white text-center py-3.5 rounded-2xl font-bold text-sm transition-all">
+        Proceed to Checkout →
+      </a>
+    </div>
+  </div>
+
+  <!-- ===== HEADER ===== -->
+  <header class="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-sm z-30 border-b border-gray-100 shadow-sm">
+    <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-2.5">
+        <a href="index.html" class="flex items-center gap-2.5">
+          <div class="w-9 h-9 bg-orange-500 rounded-xl flex items-center justify-center shadow">
+            <span class="text-white font-black text-sm">S</span>
+          </div>
+          <span class="font-black text-xl text-gray-900">SAVOR</span>
+        </a>
+      </div>
+      <div class="flex items-center gap-2">
+        <div class="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-orange-50 border border-orange-200 rounded-full text-sm font-semibold text-orange-700">
+          <span>🍽️</span><span>Table A12</span>
+        </div>
+        <button onclick="openCart()" id="cartBtn" class="relative p-2.5 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors">
+          <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+          </svg>
+          <span id="cartBadge" class="hidden absolute -top-1.5 -right-1.5 w-5 h-5 bg-orange-500 text-white text-xs font-black rounded-full items-center justify-center">0</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="pt-16 max-w-4xl mx-auto">
+
+    <!-- Hero Banner -->
+    <div class="bg-gradient-to-br from-orange-500 via-orange-400 to-amber-300 px-6 py-10 text-white relative overflow-hidden">
+      <div class="absolute -top-6 -right-6 w-36 h-36 bg-white/10 rounded-full"></div>
+      <div class="absolute bottom-0 left-8 w-20 h-20 bg-white/10 rounded-full translate-y-1/2"></div>
+      <div class="absolute top-4 right-16 text-5xl opacity-20">🍕</div>
+      <div class="relative">
+        <p class="text-orange-100 text-sm font-semibold mb-1 uppercase tracking-wide">Welcome to</p>
+        <h1 class="text-5xl font-black mb-2 tracking-tight">SAVOR</h1>
+        <p class="text-orange-100 text-sm font-medium">Scan · Order · Enjoy — right from your table</p>
+      </div>
+    </div>
+
+    <!-- Search + Filter Bar (sticky) -->
+    <div class="sticky top-16 bg-white z-20 border-b border-gray-100 shadow-sm">
+      <div class="px-4 pt-3">
+        <div class="relative">
+          <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+          </svg>
+          <input type="text" id="searchInput" oninput="renderMenu()" placeholder="Search dishes, ingredients..." class="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent">
+        </div>
+      </div>
+      <!-- Category Tabs -->
+      <div class="flex px-4 mt-1 gap-1 overflow-x-auto">
+        <button onclick="setCategory('All')" id="tab-All" class="pb-3 px-3 text-sm whitespace-nowrap tab-active border-b-0">All Items</button>
+        <button onclick="setCategory('Starters')" id="tab-Starters" class="pb-3 px-3 text-sm whitespace-nowrap tab-inactive">Starters</button>
+        <button onclick="setCategory('Mains')" id="tab-Mains" class="pb-3 px-3 text-sm whitespace-nowrap tab-inactive">Mains</button>
+        <button onclick="setCategory('Desserts')" id="tab-Desserts" class="pb-3 px-3 text-sm whitespace-nowrap tab-inactive">Desserts</button>
+        <button onclick="setCategory('Drinks')" id="tab-Drinks" class="pb-3 px-3 text-sm whitespace-nowrap tab-inactive">Drinks</button>
+      </div>
+    </div>
+
+    <!-- Dietary Filters -->
+    <div class="px-4 py-3 flex gap-2 overflow-x-auto bg-white border-b border-gray-50">
+      <button onclick="toggleFilter('Vegetarian')" id="filter-Vegetarian" class="filter-pill flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border border-gray-200 text-gray-600 whitespace-nowrap">🌿 Vegetarian</button>
+      <button onclick="toggleFilter('Vegan')" id="filter-Vegan" class="filter-pill flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border border-gray-200 text-gray-600 whitespace-nowrap">🌱 Vegan</button>
+      <button onclick="toggleFilter('Halal')" id="filter-Halal" class="filter-pill flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border border-gray-200 text-gray-600 whitespace-nowrap">☪️ Halal</button>
+      <button onclick="toggleFilter('Gluten-Free')" id="filter-Gluten-Free" class="filter-pill flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border border-gray-200 text-gray-600 whitespace-nowrap">🌾 Gluten-Free</button>
+      <button onclick="toggleFilter('Spicy')" id="filter-Spicy" class="filter-pill flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border border-gray-200 text-gray-600 whitespace-nowrap">🌶️ Spicy</button>
+    </div>
+
+    <!-- Menu Grid -->
+    <div id="menuGrid" class="px-4 pb-32 mt-4"></div>
+
+  </main>
+
+  <!-- Floating Cart Bar -->
+  <div id="floatingBar" class="hidden fixed bottom-4 left-4 right-4 z-30 slide-up max-w-lg mx-auto">
+    <button onclick="openCart()" class="w-full bg-gray-900 text-white py-4 px-5 rounded-2xl flex items-center justify-between shadow-2xl hover:bg-gray-800 transition-colors">
+      <div class="flex items-center gap-3">
+        <span id="floatingCount" class="bg-orange-500 text-white text-xs font-black w-7 h-7 rounded-full flex items-center justify-center">0</span>
+        <span class="font-bold">View Cart</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <span id="floatingTotal" class="font-bold text-orange-400">$0.00</span>
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+      </div>
+    </button>
+  </div>
+
+  <script>
+  const MENU = [
+    { id:1,  name:'Crispy Calamari',       cat:'Starters',  price:8.99,  desc:'Golden fried calamari rings with house-made marinara sauce and lemon',    tags:['Halal'],               cal:320, img:'https://images.unsplash.com/photo-1599458252573-56ae36120de1?w=500&q=80' },
+    { id:2,  name:'Garden Spring Rolls',    cat:'Starters',  price:7.49,  desc:'Light crispy rolls with fresh seasonal vegetables and dipping sauce',      tags:['Vegan','Gluten-Free'], cal:210, img:'https://images.unsplash.com/photo-1548507688-ac8aa2c5a1f9?w=500&q=80' },
+    { id:3,  name:'Buffalo Chicken Wings',  cat:'Starters',  price:10.99, desc:'Six crispy wings tossed in spicy buffalo sauce, served with blue cheese',  tags:['Halal','Spicy'],       cal:580, img:'https://images.unsplash.com/photo-1527477396000-e27163b481c2?w=500&q=80' },
+    { id:4,  name:'Classic Caesar Salad',   cat:'Starters',  price:9.49,  desc:'Romaine, shaved parmesan, house croutons, classic Caesar dressing',        tags:['Vegetarian'],          cal:280, img:'https://images.unsplash.com/photo-1550304943-4f24f54ddde9?w=500&q=80' },
+    { id:5,  name:'Grilled Chicken Burger', cat:'Mains',     price:14.99, desc:'Juicy grilled breast with lettuce, tomato, pickles & signature sauce',     tags:['Halal'],               cal:650, img:'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&q=80' },
+    { id:6,  name:'Margherita Pizza',       cat:'Mains',     price:13.49, desc:'Stone-baked thin crust with San Marzano tomato & fresh mozzarella',        tags:['Vegetarian'],          cal:720, img:'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=500&q=80' },
+    { id:7,  name:'Spaghetti Carbonara',    cat:'Mains',     price:15.99, desc:'Authentic Roman — eggs, pecorino Romano, guanciale, black pepper',         tags:[],                      cal:820, img:'https://images.unsplash.com/photo-1612874742237-6526221588e3?w=500&q=80' },
+    { id:8,  name:'Grilled Atlantic Salmon',cat:'Mains',     price:18.99, desc:'Pan-seared fillet with seasonal vegetables and lemon butter sauce',        tags:['Gluten-Free'],         cal:420, img:'https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=500&q=80' },
+    { id:9,  name:'Lamb Kofta Platter',     cat:'Mains',     price:16.99, desc:'Spiced lamb skewers with warm pita, hummus, tzatziki & tabouleh',          tags:['Halal','Spicy'],       cal:680, img:'https://images.unsplash.com/photo-1544025162-d76538cf80bf?w=500&q=80' },
+    { id:10, name:'Wild Mushroom Risotto',  cat:'Mains',     price:14.49, desc:'Creamy arborio rice with mixed wild mushrooms and white truffle oil',      tags:['Vegetarian','Gluten-Free'], cal:480, img:'https://images.unsplash.com/photo-1476124369491-e7addf5db371?w=500&q=80' },
+    { id:11, name:'Chocolate Lava Cake',    cat:'Desserts',  price:7.99,  desc:'Warm dark chocolate fondant with molten centre & vanilla bean gelato',     tags:['Vegetarian'],          cal:420, img:'https://images.unsplash.com/photo-1551024601-bec78aea704b?w=500&q=80' },
+    { id:12, name:'Mango Sorbet',           cat:'Desserts',  price:5.99,  desc:'House-made Alphonso mango sorbet with fresh mint and tropical fruits',     tags:['Vegan','Gluten-Free'], cal:180, img:'https://images.unsplash.com/photo-1488900128323-21503983a07e?w=500&q=80' },
+    { id:13, name:'New York Cheesecake',    cat:'Desserts',  price:6.99,  desc:'Classic creamy baked cheesecake with mixed berry compote',                 tags:['Vegetarian'],          cal:380, img:'https://images.unsplash.com/photo-1565958011703-44f9829ba187?w=500&q=80' },
+    { id:14, name:'Fresh Lemonade',         cat:'Drinks',    price:3.99,  desc:'Hand-squeezed lemon with honey, fresh mint & sparkling water',            tags:['Vegan'],               cal:90,  img:'https://images.unsplash.com/photo-1587080413959-06b859fb107d?w=500&q=80' },
+    { id:15, name:'Mango Lassi',            cat:'Drinks',    price:4.49,  desc:'Thick blended yogurt with fresh Alphonso mangoes and cardamom',           tags:['Vegetarian'],          cal:210, img:'https://images.unsplash.com/photo-1553361371-9b22f78e8b1d?w=500&q=80' },
+    { id:16, name:'Iced Coffee',            cat:'Drinks',    price:4.99,  desc:'Smooth cold brew poured over ice with your choice of milk',               tags:[],                      cal:120, img:'https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&q=80' },
+    { id:17, name:'Sparkling Water',        cat:'Drinks',    price:2.49,  desc:'Premium Italian sparkling mineral water 750ml',                           tags:['Vegan','Gluten-Free'], cal:0,   img:'https://images.unsplash.com/photo-1548839140-29a749e1cf4d?w=500&q=80' },
+  ];
+
+  const TAG_CLASS = { 'Vegan':'tag-vegan', 'Vegetarian':'tag-vegetarian', 'Halal':'tag-halal', 'Gluten-Free':'tag-gluten', 'Spicy':'tag-spicy' };
+
+  let cart = JSON.parse(localStorage.getItem('savor_cart')||'[]');
+  let currentCat = 'All';
+  let filters = [];
+
+  const save = () => localStorage.setItem('savor_cart', JSON.stringify(cart));
+  const getCount = () => cart.reduce((s,i)=>s+i.qty, 0);
+  const getSubtotal = () => cart.reduce((s,i)=>s+i.price*i.qty, 0);
+
+  function updateUI() {
+    const count = getCount();
+    const sub = getSubtotal();
+    const svc = sub * 0.05;
+    const total = sub + svc;
+
+    // Header badge
+    const badge = document.getElementById('cartBadge');
+    badge.textContent = count;
+    badge.style.display = count > 0 ? 'flex' : 'none';
+
+    // Floating bar
+    const bar = document.getElementById('floatingBar');
+    bar.style.display = count > 0 ? 'block' : 'none';
+    document.getElementById('floatingCount').textContent = count;
+    document.getElementById('floatingTotal').textContent = '$' + total.toFixed(2);
+
+    // Cart drawer totals
+    document.getElementById('subtotal').textContent = '$' + sub.toFixed(2);
+    document.getElementById('serviceCharge').textContent = '$' + svc.toFixed(2);
+    document.getElementById('cartTotal').textContent = '$' + total.toFixed(2);
+
+    // Cart items vs empty state
+    const empty = document.getElementById('emptyState');
+    const footer = document.getElementById('cartFooter');
+    const items = document.getElementById('cartItems');
+    if (count === 0) {
+      empty.style.display = 'flex'; footer.classList.add('hidden'); items.innerHTML = '';
+    } else {
+      empty.style.display = 'none'; footer.classList.remove('hidden');
+      items.innerHTML = cart.map(item => `
+        <div class="flex gap-3 p-3 bg-gray-50 rounded-2xl">
+          <img src="${item.img}" onerror="this.src='https://picsum.photos/seed/${item.id}/100/100'" alt="${item.name}" class="w-16 h-16 rounded-xl object-cover flex-shrink-0">
+          <div class="flex-1 min-w-0">
+            <p class="font-semibold text-sm text-gray-900 leading-tight">${item.name}</p>
+            <p class="text-orange-500 font-bold text-sm mt-0.5">$${(item.price*item.qty).toFixed(2)}</p>
+            <div class="flex items-center gap-2 mt-2">
+              <button onclick="updateQty(${item.id},-1)" class="w-7 h-7 bg-white border border-gray-200 rounded-full text-base font-bold text-gray-600 hover:bg-gray-100 flex items-center justify-center shadow-sm">−</button>
+              <span class="text-sm font-bold w-4 text-center">${item.qty}</span>
+              <button onclick="updateQty(${item.id},1)" class="w-7 h-7 bg-orange-500 rounded-full text-base font-bold text-white hover:bg-orange-600 flex items-center justify-center shadow-sm">+</button>
+            </div>
+          </div>
+          <button onclick="updateQty(${item.id},-${item.qty})" class="self-start text-gray-300 hover:text-red-400 transition-colors mt-0.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+      `).join('');
+    }
+
+    // Re-render menu cards to update "in cart" badges
+    renderMenu();
+  }
+
+  function addToCart(id) {
+    const item = MENU.find(m => m.id === id);
+    const existing = cart.find(c => c.id === id);
+    if (existing) existing.qty++;
+    else cart.push({...item, qty:1});
+    save();
+
+    const btn = document.getElementById('btn-'+id);
+    if (btn) {
+      btn.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>`;
+      btn.classList.replace('bg-orange-500','bg-green-500');
+      setTimeout(() => {
+        btn.innerHTML = '+';
+        btn.classList.replace('bg-green-500','bg-orange-500');
+        updateUI();
+      }, 700);
+    }
+    updateUI();
+  }
+
+  function updateQty(id, delta) {
+    const idx = cart.findIndex(c => c.id === id);
+    if (idx === -1) return;
+    cart[idx].qty += delta;
+    if (cart[idx].qty <= 0) cart.splice(idx, 1);
+    save(); updateUI();
+  }
+
+  function setCategory(cat) {
+    currentCat = cat;
+    document.querySelectorAll('[id^="tab-"]').forEach(t => {
+      t.className = 'pb-3 px-3 text-sm whitespace-nowrap tab-inactive';
+    });
+    document.getElementById('tab-'+cat).className = 'pb-3 px-3 text-sm whitespace-nowrap tab-active';
+    renderMenu();
+  }
+
+  function toggleFilter(f) {
+    const idx = filters.indexOf(f);
+    if (idx > -1) { filters.splice(idx,1); document.getElementById('filter-'+f).classList.remove('filter-on'); }
+    else { filters.push(f); document.getElementById('filter-'+f).classList.add('filter-on'); }
+    renderMenu();
+  }
+
+  function renderMenu() {
+    const search = document.getElementById('searchInput').value.toLowerCase();
+    let items = MENU.filter(item => {
+      const matchCat = currentCat === 'All' || item.cat === currentCat;
+      const matchSearch = !search || item.name.toLowerCase().includes(search) || item.desc.toLowerCase().includes(search);
+      const matchFilter = filters.length === 0 || filters.every(f => item.tags.includes(f));
+      return matchCat && matchSearch && matchFilter;
+    });
+
+    const grid = document.getElementById('menuGrid');
+    if (items.length === 0) {
+      grid.innerHTML = '<div class="col-span-full text-center py-20 text-gray-400"><div class="text-5xl mb-3">🔍</div><p class="font-semibold text-gray-600">No dishes found</p><p class="text-sm mt-1">Try different filters or search terms</p></div>';
+      return;
+    }
+
+    if (currentCat === 'All') {
+      grid.innerHTML = '';
+      ['Starters','Mains','Desserts','Drinks'].forEach(cat => {
+        const catItems = items.filter(i => i.cat === cat);
+        if (!catItems.length) return;
+        const section = document.createElement('div');
+        section.className = 'mb-6';
+        section.innerHTML = `<h3 class="text-base font-black text-gray-900 mb-3 flex items-center gap-2">
+          <span>${{Starters:'🥗',Mains:'🍽️',Desserts:'🍰',Drinks:'🥤'}[cat]}</span>${cat}
+          <span class="text-xs font-medium text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">${catItems.length}</span>
+        </h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">${catItems.map(renderCard).join('')}</div>`;
+        grid.appendChild(section);
+      });
+    } else {
+      grid.innerHTML = `<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">${items.map(renderCard).join('')}</div>`;
+    }
+  }
+
+  function renderCard(item) {
+    const inCart = (cart.find(c=>c.id===item.id)||{qty:0}).qty;
+    return `
+      <div class="card bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm">
+        <div class="relative">
+          <img src="${item.img}" onerror="this.src='https://picsum.photos/seed/${item.id}food/500/300'" alt="${item.name}" class="w-full h-44 object-cover">
+          ${inCart>0 ? `<div class="absolute top-2 right-2 bg-orange-500 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow">${inCart} in cart</div>` : ''}
+          ${item.tags.includes('Spicy') ? '<div class="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">🌶️ Spicy</div>' : ''}
+        </div>
+        <div class="p-4">
+          <div class="flex flex-wrap gap-1 mb-2">${item.tags.filter(t=>t!=='Spicy').map(t=>`<span class="tag ${TAG_CLASS[t]||''}">${t}</span>`).join('')}</div>
+          <h4 class="font-bold text-gray-900 text-sm leading-tight mb-1">${item.name}</h4>
+          <p class="text-gray-400 text-xs line-clamp-2 mb-3">${item.desc}</p>
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-orange-500 font-black text-lg">$${item.price.toFixed(2)}</p>
+              ${item.cal>0 ? `<p class="text-gray-300 text-xs">${item.cal} kcal</p>` : '<p class="text-gray-300 text-xs">0 kcal</p>'}
+            </div>
+            <button id="btn-${item.id}" onclick="addToCart(${item.id})" class="bg-orange-500 hover:bg-orange-600 active:scale-90 text-white w-9 h-9 rounded-xl font-bold text-lg transition-all flex items-center justify-center shadow-md">+</button>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  function openCart() { document.getElementById('cartDrawer').classList.add('open'); document.getElementById('overlay').classList.add('visible'); }
+  function closeCart() { document.getElementById('cartDrawer').classList.remove('open'); document.getElementById('overlay').classList.remove('visible'); }
+
+  renderMenu();
+  updateUI();
+  </script>
+</body>
+</html>

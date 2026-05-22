@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SAVOR — Waiter Board</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    * { font-family: 'Inter', sans-serif; }
+    @keyframes slideIn { from{opacity:0;transform:translateY(15px)} to{opacity:1;transform:translateY(0)} }
+    .slide-in { animation: slideIn 0.3s ease-out; }
+    @keyframes servedAnim { from{opacity:1;transform:scale(1)} to{opacity:0;transform:scale(0.85) translateY(-10px)} }
+    .served-exit { animation: servedAnim 0.4s ease-out forwards; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.4} }
+    .blink { animation: blink 2s ease-in-out infinite; }
+    .toast-show { transform:translateY(0) !important; opacity:1 !important; }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+  <!-- Toast -->
+  <div id="toast" class="fixed top-4 right-4 z-50 bg-green-500 text-white px-4 py-3 rounded-2xl shadow-xl font-semibold text-sm flex items-center gap-2 transition-all duration-300 opacity-0" style="transform:translateY(-20px)">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+    <span id="toastMsg">Order marked as served!</span>
+  </div>
+
+  <!-- Header -->
+  <header class="bg-white border-b border-gray-100 shadow-sm sticky top-0 z-20">
+    <div class="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-orange-500 rounded-xl flex items-center justify-center shadow">
+          <span class="text-white font-black text-sm">S</span>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-black text-lg text-gray-900">Staff Board</span>
+            <span class="blink w-2 h-2 bg-green-400 rounded-full"></span>
+          </div>
+          <p class="text-xs text-gray-400">Waiter: Sarah K. · Dining Floor</p>
+        </div>
+      </div>
+      <a href="index.html" class="text-sm font-semibold text-gray-500 hover:text-gray-700">← Hub</a>
+    </div>
+  </header>
+
+  <div class="max-w-2xl mx-auto px-4 py-5 space-y-5">
+
+    <!-- Active Tables Overview -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+      <h2 class="font-bold text-gray-900 mb-3 flex items-center gap-2">
+        <svg class="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+        Active Tables
+      </h2>
+      <div class="flex gap-2 flex-wrap" id="tableChips"></div>
+    </div>
+
+    <!-- Ready for Service -->
+    <div>
+      <div class="flex items-center gap-3 mb-3">
+        <h2 class="font-bold text-gray-900 text-lg">Ready to Serve</h2>
+        <span id="readyBadge" class="bg-green-500 text-white text-xs font-bold px-2.5 py-1 rounded-full">0</span>
+      </div>
+      <div id="readyList" class="space-y-3"></div>
+      <div id="emptyReady" class="hidden text-center py-12 bg-white rounded-2xl border border-gray-100">
+        <div class="text-4xl mb-3">🎉</div>
+        <p class="font-bold text-gray-700">All orders delivered!</p>
+        <p class="text-sm text-gray-400 mt-1">No orders waiting to be served</p>
+      </div>
+    </div>
+
+    <!-- In Preparation -->
+    <div>
+      <div class="flex items-center gap-3 mb-3">
+        <h2 class="font-bold text-gray-900">In Preparation</h2>
+        <span id="prepBadge" class="bg-amber-400 text-white text-xs font-bold px-2.5 py-1 rounded-full">0</span>
+      </div>
+      <div id="prepList" class="space-y-3"></div>
+    </div>
+
+  </div>
+
+  <script>
+  let orders = [
+    {
+      id:'ORD-1038', table:'E5', status:'ready', mins:18,
+      items:['Crispy Calamari ×1','Chocolate Lava Cake ×2'],
+      total:22.97
+    },
+    {
+      id:'ORD-1035', table:'F1', status:'ready', mins:22,
+      items:['Grilled Chicken Burger ×2','Sparkling Water ×2'],
+      total:34.96
+    },
+    {
+      id:'ORD-1033', table:'G3', status:'ready', mins:25,
+      items:['Margherita Pizza ×1','Mango Lassi ×1','New York Cheesecake ×2'],
+      total:35.95
+    },
+    {
+      id:'ORD-1041', table:'C7', status:'preparing', mins:12,
+      items:['Spaghetti Carbonara ×2','Classic Caesar Salad ×1'],
+      total:41.47
+    },
+    {
+      id:'ORD-1039', table:'F4', status:'preparing', mins:9,
+      items:['Grilled Atlantic Salmon ×2','Sparkling Water ×2'],
+      total:42.96
+    },
+  ];
+
+  function urgencyBg(mins) {
+    if (mins > 20) return 'bg-red-50 border-red-200';
+    if (mins > 12) return 'bg-amber-50 border-amber-200';
+    return 'bg-green-50 border-green-200';
+  }
+  function urgencyText(mins) {
+    if (mins > 20) return 'text-red-600';
+    if (mins > 12) return 'text-amber-600';
+    return 'text-green-600';
+  }
+
+  function renderReadyCard(o) {
+    return `
+      <div id="card-${o.id}" class="slide-in bg-white rounded-2xl border-2 border-green-200 shadow-sm overflow-hidden">
+        <div class="bg-green-500 px-4 py-2 flex items-center justify-between">
+          <div class="flex items-center gap-2 text-white">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+            <span class="font-bold text-sm">READY FOR SERVICE</span>
+          </div>
+          <span class="text-green-100 text-xs font-medium">${o.mins} min wait</span>
+        </div>
+        <div class="p-4">
+          <div class="flex items-start justify-between mb-3">
+            <div>
+              <p class="font-black text-gray-900 text-xl">Table ${o.table}</p>
+              <p class="text-gray-400 text-xs">${o.id}</p>
+            </div>
+            <p class="font-bold text-gray-900">$${o.total.toFixed(2)}</p>
+          </div>
+          <div class="bg-gray-50 rounded-xl p-3 mb-3 space-y-1">
+            ${o.items.map(it=>`<p class="text-sm text-gray-700 flex items-center gap-2"><span class="text-orange-400">•</span>${it}</p>`).join('')}
+          </div>
+          <button onclick="markServed('${o.id}')" class="w-full bg-green-500 hover:bg-green-600 active:scale-95 text-white py-3 rounded-xl font-bold text-sm transition-all">
+            🍽️ Mark as Served
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderPrepCard(o) {
+    return `
+      <div class="slide-in bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        <div class="px-4 py-3 border-b border-gray-50 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <div class="w-2 h-2 rounded-full bg-amber-400"></div>
+            <span class="font-bold text-gray-900">Table ${o.table}</span>
+            <span class="text-gray-400 text-xs">${o.id}</span>
+          </div>
+          <span class="text-xs font-semibold ${urgencyText(o.mins)}">${o.mins} min</span>
+        </div>
+        <div class="px-4 py-3">
+          <div class="space-y-1 mb-2">
+            ${o.items.map(it=>`<p class="text-sm text-gray-600"><span class="text-amber-400 mr-2">•</span>${it}</p>`).join('')}
+          </div>
+          <div class="flex items-center gap-2 mt-3">
+            <div class="flex-1 bg-gray-100 rounded-full h-1.5 overflow-hidden">
+              <div class="bg-amber-400 h-full rounded-full" style="width:${Math.min(100,(o.mins/20)*100)}%"></div>
+            </div>
+            <span class="text-xs text-gray-400">In kitchen</span>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function render() {
+    const ready = orders.filter(o=>o.status==='ready');
+    const prep = orders.filter(o=>o.status==='preparing');
+
+    document.getElementById('readyBadge').textContent = ready.length;
+    document.getElementById('prepBadge').textContent = prep.length;
+
+    const readyList = document.getElementById('readyList');
+    const emptyReady = document.getElementById('emptyReady');
+    if (ready.length) {
+      readyList.innerHTML = ready.map(renderReadyCard).join('');
+      emptyReady.classList.add('hidden');
+    } else {
+      readyList.innerHTML = '';
+      emptyReady.classList.remove('hidden');
+    }
+    document.getElementById('prepList').innerHTML = prep.length ? prep.map(renderPrepCard).join('') : '<p class="text-sm text-gray-400 text-center py-6 bg-white rounded-2xl border border-gray-100">No orders currently being prepared</p>';
+
+    // Table chips - all active tables
+    const allTables = [...new Set(orders.map(o=>o.table))];
+    document.getElementById('tableChips').innerHTML = allTables.map(t => {
+      const order = orders.find(o=>o.table===t);
+      const color = order?.status==='ready' ? 'bg-green-100 text-green-700 border-green-200' : 'bg-amber-100 text-amber-700 border-amber-200';
+      return `<div class="flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-semibold ${color}">
+        <span>🍽️</span><span>Table ${t}</span>
+      </div>`;
+    }).join('');
+  }
+
+  function showToast(msg) {
+    const toast = document.getElementById('toast');
+    document.getElementById('toastMsg').textContent = msg;
+    toast.classList.add('toast-show');
+    setTimeout(() => toast.classList.remove('toast-show'), 2500);
+  }
+
+  function markServed(id) {
+    const card = document.getElementById('card-'+id);
+    const o = orders.find(x=>x.id===id);
+    if (card) {
+      card.classList.add('served-exit');
+      setTimeout(() => {
+        orders = orders.filter(x=>x.id!==id);
+        render();
+        showToast(`Table ${o?.table} order delivered! ✓`);
+      }, 380);
+    }
+  }
+
+  render();
+  </script>
+</body>
+</html>
